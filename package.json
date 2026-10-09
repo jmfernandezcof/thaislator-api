@@ -1,0 +1,17 @@
+{
+  "name": "eur-thai-backend",
+  "version": "0.4.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "invites": "node scripts/invites.js",
+    "test": "node --test test/*.test.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.40.1",
+    "express": "^4.21.2",
+    "pngjs": "^7.0.0",
+    "morgan": "^1.10.0"
+  }
+}

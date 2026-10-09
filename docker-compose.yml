@@ -1,0 +1,46 @@
+services:
+  eur-thai-backend:
+    build: .
+    container_name: eur-thai-backend
+    restart: unless-stopped
+    user: "10001:10001"
+    read_only: true
+    init: true
+    cap_drop: [ALL]
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 512m
+    cpus: 1.0
+    tmpfs:
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+    stop_grace_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "10"
+    env_file: .env
+    volumes:
+      - ./logs:/data/logs
+      - ./tts-cache:/data/tts
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3010/health').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    networks: [web]
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=web"
+      - "traefik.http.routers.eur-thai.rule=Host(`eurthai.nomadprompters.es`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.eur-thai.entrypoints=websecure"
+      - "traefik.http.routers.eur-thai.tls.certresolver=myresolver"
+      - "traefik.http.routers.eur-thai.middlewares=cloudflare-ips@file,eur-thai-stripapi@docker,rate-limit@docker,safe-headers@docker"
+      - "traefik.http.middlewares.eur-thai-stripapi.stripprefix.prefixes=/api"
+      - "traefik.http.services.eur-thai.loadbalancer.server.port=3010"
+
+networks:
+  web:
+    external: true
